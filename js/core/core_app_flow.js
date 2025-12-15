@@ -234,6 +234,12 @@ async function nextQuestion() {
     const wordArea = document.getElementById('word-area');
     if(wordArea) wordArea.classList.remove('shake-anim', 'pop-anim');
     
+    // 「次へ」ボタンをリセット（発音モード・聞き取りモード両方）
+    const nextSpkBtn = document.getElementById('next-btn-spk');
+    if (nextSpkBtn) nextSpkBtn.style.display = 'none';
+    const nextLstBtn = document.getElementById('next-btn-lst');
+    if (nextLstBtn) nextLstBtn.style.display = 'none';
+
     const btnL = document.getElementById('choice-l');
     const btnR = document.getElementById('choice-r');
     if(btnL) btnL.classList.remove('success', 'error');
