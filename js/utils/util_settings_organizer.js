@@ -77,6 +77,7 @@
                     'setting-notes-wrapper',           // 発音ノート機能
                     'setting-accent-wrapper',          // アクセント選択機能
                     'setting-audio-effects-wrapper',   // 音声エフェクト機能
+                    'setting-recent-words-wrapper',    // 最近練習した単語リスト機能
                     'setting-audio-optimization-wrapper' // 音声最適化機能
                 ]
             },

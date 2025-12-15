@@ -13,6 +13,7 @@
         { id: 'custom-session-btn', icon: '🎯', title: 'カスタム練習セッション', handler: null },
         { id: 'coaching-btn', icon: '🎓', title: '発音コーチング', handler: null },
         { id: 'detailed-stats-btn', icon: '📋', title: '詳細統計', handler: null },
+        { id: 'recent-words-btn', icon: '🕒', title: '最近練習した単語', handler: null },
         { id: 'help-btn', icon: '❓', title: '機能ガイド', handler: null }
     ];
 
@@ -27,6 +28,8 @@
                 btn.handler = window.showCoachingModal;
             } else if (btn.id === 'detailed-stats-btn' && typeof window.showStatsDashboard === 'function') {
                 btn.handler = window.showStatsDashboard;
+            } else if (btn.id === 'recent-words-btn' && typeof window.showRecentWordsModal === 'function') {
+                btn.handler = window.showRecentWordsModal;
             } else if (btn.id === 'help-btn') {
                 btn.handler = () => { window.location.href = 'help.html'; };
             }

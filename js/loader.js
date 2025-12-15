@@ -36,6 +36,7 @@
         'lr_rhythm_mode_enabled': false,          // リズム練習モード
         'lr_time_attack_enabled': false,          // タイムアタックモード
         'lr_audio_effects_enabled': false,        // 音声エフェクト機能
+        'lr_recent_words_enabled': true,          // 最近練習した単語リスト機能（デフォルトON）
         
         // API・デバッグ系
         'lr_api_usage_enabled': null,              // API使用量表示 (null=プロバイダーに応じて自動)
@@ -131,6 +132,7 @@
         'js/features/learning/feature_katakana_hint.js',        // L/R対応カタカナ自動生成プラグイン
         'js/features/learning/feature_accent_selection.js',     // アクセント選択機能
         'js/features/learning/feature_audio_effects.js',        // 音声エフェクト機能
+        'js/features/learning/feature_recent_words.js',         // 最近練習した単語リスト機能
         
         // UI Features
         'js/features/ui/feature_rank_system.js',          // RPG風ランクシステム機能
