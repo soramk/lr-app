@@ -38,8 +38,11 @@
         'lr_audio_effects_enabled': false,        // 音声エフェクト機能
         
         // API・デバッグ系
-        'lr_api_usage_enabled': null,      // API使用量表示 (null=プロバイダーに応じて自動)
-        'lr_api_debug_enabled': false      // APIデバッグログ
+        'lr_api_usage_enabled': null,              // API使用量表示 (null=プロバイダーに応じて自動)
+        'lr_api_debug_enabled': false,             // APIデバッグログ
+
+        // 高度評価系
+        'lr_strict_phoneme_mode_enabled': false    // 音素精密スコアモード
     };
     
     // 3. デフォルト設定を取得するヘルパー関数
@@ -118,6 +121,7 @@
         'js/features/analysis/feature_detailed_stats.js',       // 詳細統計ダッシュボード機能
         'js/features/analysis/feature_api_usage.js',            // API使用量表示機能（トークン数・リクエスト数）
         'js/features/analysis/feature_api_debug.js',            // APIデバッグログ表示機能（モデル名・プロンプト内容）
+        'js/features/analysis/feature_strict_phoneme_mode.js',  // 音素精密スコアモード（詳細練習ガイド）
         
         // Learning Support Features
         'js/features/learning/feature_custom_session.js',       // カスタム練習セッション機能

@@ -29,7 +29,7 @@ if (!document.getElementById('score-style')) {
 }
 
 // --- 2. リトライ付きのGemini送信処理 ---
-
+// 音素精密スコアモードがONの場合は、音素ごとのスコアと練習ガイドも返すようにプロンプトを変更する。
 window.sendToGemini = async function(blob, mime) {
     const isL = (typeof isTargetL !== 'undefined') ? isTargetL : true;
     const current = (typeof currentPair !== 'undefined') ? currentPair : {l:{w:'test'}, r:{w:'test'}};
@@ -44,10 +44,23 @@ window.sendToGemini = async function(blob, mime) {
     
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${k}`;
     
-    // プロンプト：最適化版（品質を保ちつつ短縮）
-    const promptText = `Audio: user pronouncing "${targetObj.w}".
+    const strictMode = !!window.phonemeStrictMode;
+    let promptText;
+    if (strictMode) {
+        // 音素ごとのスコア＋具体的な練習方法を要求
+        promptText = `Audio: user pronouncing "${targetObj.w}".
+Task:
+1) Identify the heard word.
+2) Rate overall pronunciation from 0-100.
+3) Break the word into IPA phonemes and rate each phoneme 0-100 with a short JAPANESE description of the issue.
+4) Provide 2-3 very concrete JAPANESE practice tips (step-by-step mouth/tongue/lip actions) that the learner can try immediately.
+Output JSON only (NO extra text): {"heard":"word","correct":true/false,"score":85,"advice":"全体の短い日本語コメント","phonemes":[{"symbol":"/l/","score":70,"issue":"日本語での問題点"},{"symbol":"/r/","score":60,"issue":"日本語での問題点"}],"practice_tips":["具体的な練習方法1","具体的な練習方法2"]}`;
+    } else {
+        // 通常モード：シンプルなスコア＋アドバイスのみ
+        promptText = `Audio: user pronouncing "${targetObj.w}".
 Task: 1) Identify heard word. 2) Rate pronunciation 0-100. 3) If score<100, provide specific JAPANESE advice about tongue/lip position.
 Output JSON: {"heard":"word","correct":true/false,"score":85,"advice":"日本語アドバイス"}`;
+    }
 
     const payload = {
         contents:[{parts:[{text:promptText},{inline_data:{mime_type:mime.split(';')[0],data:b64}}]}],
@@ -210,7 +223,11 @@ window.checkPronunciation = function(data) {
         
         // スコアとアドバイスはそのまま
         score: (data.score !== undefined) ? data.score : 0,
-        advice: data.advice || ""
+        advice: data.advice || "",
+
+        // 音素ごとの詳細スコア・練習ヒント（音素精密スコアモード用）
+        phonemeScores: data.phonemes || data.phoneme_scores || [],
+        practiceTips: data.practice_tips || data.practiceTips || []
     };
 
     // UI更新関数へ渡す
@@ -294,6 +311,36 @@ window.handleResult = function(result) {
         }
         
         if(typeof streak !== 'undefined') window.streak = 0;
+    }
+    
+    // 音素精密スコアモード: 追加情報を下部に表示
+    if (fb && window.phonemeStrictMode && (result.phonemeScores?.length || result.practiceTips?.length)) {
+        let extraHtml = '<div style="margin-top:8px; padding:8px; border-radius:6px; background:rgba(30,64,175,0.08); font-size:0.8rem;">';
+        
+        if (result.phonemeScores && result.phonemeScores.length) {
+            extraHtml += '<div style="font-weight:bold; margin-bottom:4px;">🎯 音素ごとのスコア</div>';
+            extraHtml += '<ul style="margin:0; padding-left:18px;">';
+            result.phonemeScores.forEach(p => {
+                if (!p || !p.symbol) return;
+                const s = (typeof p.score === 'number') ? p.score : '-';
+                const issue = p.issue || '';
+                extraHtml += `<li><code>${p.symbol}</code> : ${s}点 ${issue ? `- ${issue}` : ''}</li>`;
+            });
+            extraHtml += '</ul>';
+        }
+
+        if (result.practiceTips && result.practiceTips.length) {
+            extraHtml += '<div style="font-weight:bold; margin-top:6px; margin-bottom:4px;">🧪 具体的な練習方法</div>';
+            extraHtml += '<ul style="margin:0; padding-left:18px;">';
+            result.practiceTips.forEach(tip => {
+                if (!tip) return;
+                extraHtml += `<li>${tip}</li>`;
+            });
+            extraHtml += '</ul>';
+        }
+
+        extraHtml += '</div>';
+        fb.innerHTML += extraHtml;
     }
     
     if(typeof updateStreakDisplay === 'function') updateStreakDisplay();

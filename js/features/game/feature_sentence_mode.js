@@ -619,7 +619,9 @@
             "The restaurant serves really delicious food that is prepared fresh every single day, using only the finest ingredients from local farms and markets.",
             "Let's plan a trip to the lake next week when the weather is supposed to be nice, and we can spend the whole day swimming and relaxing there.",
             "I'll write a letter to my friend later today to tell her about my recent travels, and ask her if she'd like to join me on my next adventure.",
-            "The weather forecast says it will rain tomorrow, so we should bring our umbrellas and raincoats, or we'll get really wet during our walk.",
+            "The weather forecast says it will rain tomorrow, so we should bring our umbrellas and raincoats, or we'll get really wet during our walk."
+        ],
+        "Sentence Lv5 (Challenge)": [
             "The rural jury rarely rules correctly in purely pluralistic trials, often causing controversy among the local legal community.",
             "Literally millions of dollars were lost due to a clerical error in the rural bank, forcing the regulators to launch a full investigation.",
             "The cruel ruler ruled the rural region with little reliance on the law, leading to a rebellion that lasted for several years.",
