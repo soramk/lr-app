@@ -39,70 +39,249 @@
         return `${category}:${word}`;
     }
 
-    function getNote(word, category) {
-        const key = getNoteKey(word, category);
-        const noteObj = notesData[key];
-        if (!noteObj) return '';
-        // 旧形式（文字列）の場合はそのまま返す
-        if (typeof noteObj === 'string') return noteObj;
-        // 新形式（オブジェクト）の場合は結合して返す
-        let result = '';
-        if (noteObj.userNote) {
-            result += noteObj.userNote;
-        }
-        if (noteObj.aiAdvice) {
-            if (result) result += '\n\n';
-            result += '💡 AIアドバイス: ' + noteObj.aiAdvice;
-        }
-        return result;
+    function generateId() {
+        return 'n_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
     }
 
-    function getNoteObject(word, category) {
-        const key = getNoteKey(word, category);
-        const noteObj = notesData[key];
-        if (!noteObj) return { userNote: '', aiAdvice: '' };
-        // 旧形式（文字列）の場合は変換
-        if (typeof noteObj === 'string') {
-            return { userNote: noteObj, aiAdvice: '' };
+    function formatTimestamp() {
+        try {
+            return new Date().toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch(e) {
+            return new Date().toISOString();
         }
-        return noteObj;
+    }
+
+    // 内部データを常に配列形式に正規化
+    // ノート1件の形式: { id, type: 'user' | 'ai', text, ts }
+    function getNoteList(word, category) {
+        const key = getNoteKey(word, category);
+        const raw = notesData[key];
+        if (!raw) return [];
+
+        if (Array.isArray(raw)) {
+            return raw.map(entry => {
+                if (!entry.id) entry.id = generateId();
+                return entry;
+            });
+        }
+
+        const list = [];
+
+        if (typeof raw === 'string') {
+            // 旧形式: 文字列
+            list.push({
+                id: generateId(),
+                type: 'user',
+                text: raw,
+                ts: formatTimestamp()
+            });
+        } else if (typeof raw === 'object') {
+            // 旧形式: { userNote, aiAdvice }
+            if (raw.userNote) {
+                list.push({
+                    id: generateId(),
+                    type: 'user',
+                    text: raw.userNote,
+                    ts: formatTimestamp()
+                });
+            }
+            if (raw.aiAdvice) {
+                list.push({
+                    id: generateId(),
+                    type: 'ai',
+                    text: raw.aiAdvice,
+                    ts: formatTimestamp()
+                });
+            }
+        }
+
+        notesData[key] = list;
+        return list;
+    }
+
+    // テキストエリア用にユーザーメモのみ結合して返す
+    function getNote(word, category) {
+        const list = getNoteList(word, category);
+        const userTexts = list
+            .filter(entry => entry.type === 'user')
+            .map(entry => entry.text);
+        return userTexts.join('\n\n');
     }
 
     function saveNote(word, category, note) {
         const key = getNoteKey(word, category);
-        const currentNote = getNoteObject(word, category);
-        
+        const currentList = getNoteList(word, category);
+
         if (note.trim()) {
-            // ユーザーメモとAIアドバイスを分離
-            const parts = note.split(/\n\n💡 AIアドバイス:\s*/);
-            const userNote = parts[0].trim();
-            const aiAdvice = parts[1] ? parts[1].trim() : currentNote.aiAdvice;
-            
-            notesData[key] = {
-                userNote: userNote,
-                aiAdvice: aiAdvice
+            const userEntry = {
+                id: generateId(),
+                type: 'user',
+                text: note.trim(),
+                ts: formatTimestamp()
             };
+            const others = currentList.filter(entry => entry.type !== 'user');
+            notesData[key] = [...others, userEntry];
         } else {
-            delete notesData[key];
+            const others = currentList.filter(entry => entry.type !== 'user');
+            if (others.length > 0) {
+                notesData[key] = others;
+            } else {
+                delete notesData[key];
+            }
         }
         saveNotesData();
     }
 
-    // AIアドバイスを自動追記
+    // AIアドバイスを自動追記（履歴として残す）
     function appendAIAdvice(word, category, advice) {
         if (!isEnabled() || !advice || !advice.trim()) return;
-        
+
         const key = getNoteKey(word, category);
-        const currentNote = getNoteObject(word, category);
-        
-        // AIアドバイスを更新（2回目以降は上書き）
-        notesData[key] = {
-            userNote: currentNote.userNote, // ユーザーメモは保持
-            aiAdvice: advice.trim() // AIアドバイスは最新のものに更新
+        const currentList = getNoteList(word, category);
+
+        const aiEntry = {
+            id: generateId(),
+            type: 'ai',
+            text: advice.trim(),
+            ts: formatTimestamp()
         };
-        
+
+        notesData[key] = [...currentList, aiEntry];
         saveNotesData();
         updateNoteDisplay();
+    }
+
+    // 現在の単語キーを取得
+    function getCurrentKey() {
+        if (!(window.targetObj && window.targetObj.w && window.currentCategory)) return null;
+        return getNoteKey(window.targetObj.w, window.currentCategory);
+    }
+
+    function openNotesWindow() {
+        if (!isEnabled()) return;
+        const key = getCurrentKey();
+        if (!key) return;
+
+        const word = window.targetObj.w;
+        const category = window.currentCategory;
+        const list = getNoteList(word, category);
+
+        let overlay = document.getElementById('pronunciation-notes-modal');
+        if (overlay) overlay.remove();
+
+        overlay = document.createElement('div');
+        overlay.id = 'pronunciation-notes-modal';
+        overlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        `;
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            border-radius: 10px;
+            width: min(480px, 90vw);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        `;
+
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight:bold; margin-bottom:8px;';
+        title.textContent = `発音ノート一覧: ${word} (${category})`;
+
+        const listContainer = document.createElement('div');
+        listContainer.style.cssText = 'flex:1; overflow:auto; border:1px solid rgba(128,128,128,0.3); border-radius:6px; padding:8px; margin-bottom:8px; background: rgba(0,0,0,0.02);';
+
+        if (list.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'メモはまだありません。';
+            empty.style.opacity = '0.7';
+            listContainer.appendChild(empty);
+        } else {
+            list
+                .sort((a, b) => (a.ts || '').localeCompare(b.ts || ''))
+                .forEach(entry => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex; align-items:flex-start; gap:6px; margin-bottom:6px;';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.dataset.noteId = entry.id;
+                    checkbox.style.marginTop = '4px';
+
+                    const body = document.createElement('div');
+                    const label = entry.type === 'ai' ? '💡 AI' : '✏️ メモ';
+                    const ts = entry.ts ? ` (${entry.ts})` : '';
+                    body.innerHTML = `<div style="font-size:0.8rem; opacity:0.8;">${label}${ts}</div><div style="font-size:0.9rem;">${entry.text.replace(/\n/g, '<br>')}</div>`;
+
+                    row.appendChild(checkbox);
+                    row.appendChild(body);
+                    listContainer.appendChild(row);
+                });
+        }
+
+        const buttonRow = document.createElement('div');
+        buttonRow.style.cssText = 'display:flex; justify-content:flex-end; gap:8px; margin-top:4px;';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '🗑 選択したメモを削除';
+        deleteBtn.className = 'btn-small';
+        deleteBtn.onclick = function() {
+            const checkboxes = listContainer.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('削除するメモを選択してください。');
+                return;
+            }
+            const idsToDelete = Array.from(checkboxes).map(cb => cb.dataset.noteId);
+            const currentList = getNoteList(word, category);
+            const remaining = currentList.filter(entry => !idsToDelete.includes(entry.id));
+            if (remaining.length > 0) {
+                notesData[key] = remaining;
+            } else {
+                delete notesData[key];
+            }
+            saveNotesData();
+            updateNoteDisplay();
+            overlay.remove();
+        };
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '閉じる';
+        closeBtn.className = 'btn-small';
+        closeBtn.onclick = function() {
+            overlay.remove();
+        };
+
+        buttonRow.appendChild(deleteBtn);
+        buttonRow.appendChild(closeBtn);
+
+        modal.appendChild(title);
+        modal.appendChild(listContainer);
+        modal.appendChild(buttonRow);
+
+        overlay.appendChild(modal);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        document.body.appendChild(overlay);
     }
 
     // ノート表示エリアを追加
@@ -148,7 +327,7 @@
         `;
 
         const noteButtons = document.createElement('div');
-        noteButtons.style.cssText = 'display: flex; gap: 8px; margin-top: 8px;';
+        noteButtons.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;';
 
         const editBtn = document.createElement('button');
         editBtn.innerText = '📝 メモを編集';
@@ -194,6 +373,15 @@
         noteButtons.appendChild(saveBtn);
         noteButtons.appendChild(cancelBtn);
 
+        // メモを別ウィンドウ（モーダル）で表示
+        const windowBtn = document.createElement('button');
+        windowBtn.innerText = '🔍 メモを別ウィンドウで表示';
+        windowBtn.className = 'btn-small';
+        windowBtn.onclick = function() {
+            openNotesWindow();
+        };
+        noteButtons.appendChild(windowBtn);
+
         noteArea.appendChild(noteDisplay);
         noteArea.appendChild(noteInput);
         noteArea.appendChild(noteButtons);
@@ -220,20 +408,22 @@
         if (!noteDisplay || !noteInput) return;
 
         if (window.targetObj && window.targetObj.w && window.currentCategory) {
-            const note = getNote(window.targetObj.w, window.currentCategory);
-            const noteObj = getNoteObject(window.targetObj.w, window.currentCategory);
-            
-            if (note) {
-                let html = '<strong>📝 メモ:</strong><br>';
-                if (noteObj.userNote) {
-                    html += noteObj.userNote.replace(/\n/g, '<br>');
-                }
-                if (noteObj.aiAdvice) {
-                    if (noteObj.userNote) html += '<br><br>';
-                    html += '<span style="color:var(--accent);">💡 AIアドバイス:</span> ' + noteObj.aiAdvice.replace(/\n/g, '<br>');
-                }
+            const word = window.targetObj.w;
+            const category = window.currentCategory;
+            const list = getNoteList(word, category);
+            const userText = getNote(word, category);
+
+            if (list.length > 0) {
+                let html = '<strong>📝 メモ履歴:</strong><br>';
+                list
+                    .sort((a, b) => (a.ts || '').localeCompare(b.ts || ''))
+                    .forEach(entry => {
+                        const label = entry.type === 'ai' ? '💡 AIアドバイス' : 'ユーザーメモ';
+                        const ts = entry.ts ? ` (${entry.ts})` : '';
+                        html += `<div style="margin-top:4px;"><span style="font-weight:bold;">${label}${ts}:</span> ${entry.text.replace(/\n/g, '<br>')}</div>`;
+                    });
                 noteDisplay.innerHTML = html;
-                noteInput.value = note;
+                noteInput.value = userText;
             } else {
                 noteDisplay.innerHTML = '';
                 noteInput.value = '';
