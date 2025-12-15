@@ -59,7 +59,7 @@ Google Gemini、OpenAI (Whisper + GPT)、またはブラウザ標準の音声認
 - **インポート/エクスポート**: JSON形式でデータのバックアップや共有が可能
 - **発音データ対応**: 各単語に音素データを設定し、発音図解を表示可能
 
-### 5. 🎮 拡張機能・ゲームモード
+### 5. 🎮 拡張機能・ゲームモード & リズム練習
 
 #### ⚡ ブリッツモード (Blitz Mode)
 - 制限時間30秒内にL/Rを聞き分ける早押しゲーム
@@ -106,15 +106,64 @@ Google Gemini、OpenAI (Whisper + GPT)、またはブラウザ標準の音声認
 - 正解・不正解に反応するアニメーションマスコット
 - 楽しく学習を続けられる
 
-### 6. ⚙️ その他の機能
+#### 🎵 リズム練習モード / ⏱ タイムアタックモード
+- **リズム練習モード**: 拍に合わせて発音し、英語らしいリズム感を身につける
+- **タイムアタックモード**: 制限時間内にできるだけ多く正解し、瞬発力と集中力を鍛える
+
+#### 🎛 音声エフェクト
+- 自分の声にリバーブ・ピッチシフトなどのエフェクトをかけて再生
+- 遊びながら、自分の声の響き方を客観的に確認できる
+
+### 6. 📚 学習支援・分析機能
+
+#### 📈 発音トレンド分析
+- 日ごとのスコア推移や正解率を分析し、上達度を可視化
+- 苦手な音や単語の傾向を把握しやすくなる
+
+#### 🎯 カスタム練習セッション
+- 自分の苦手な単語だけを集めた「マイセッション」を作成
+- 回数・制限時間・出題レベルなどを細かくカスタマイズ可能
+
+#### 🎓 発音コーチングモード
+- 最近の成績から弱点を自動分析し、「今日やるべき練習メニュー」を提案
+- 集中して克服したい音・単語に絞ったプランを生成
+
+#### 📋 詳細統計ダッシュボード
+- 単語別・音素別・セッション別の詳細統計をダッシュボード形式で表示
+- 成長の度合いや伸び悩んでいるポイントを一目で確認
+
+#### 🔁 復習リマインダー
+- 一定期間答えていない単語や苦手単語を自動でピックアップ
+- 間隔反復（SRS）的に忘れかけの単語を復習できる
+
+#### 📝 発音ノート
+- 各単語ごとに自分用メモを残せる
+- 間違えたときはAIアドバイスが自動でノートに追記され、履歴として残る
+
+#### 🌐 アクセント選択
+- モデル音声のアクセント（例: US / UK）を切り替え可能
+- 自分が目指したいアクセントで一貫して練習できる
+
+#### 🕒 最近練習した単語リスト
+- 直近で練習した単語をリストから選んで、すぐに再チャレンジ
+- 正解/不正解の回数や最終練習日時も確認可能
+
+#### 🎯 音素精密スコアモード
+- 音素（/l/, /r/, 母音など）ごとに0–100点で厳密にスコアリング
+- 各音素ごとに「どこが弱いか」「どう直すか」を日本語で詳細にフィードバック
+
+### 7. ⚙️ その他の機能
 - **自動次へ**: 正解時に自動で次の問題に進む
 - **自動停止**: 発音終了を自動検知して録音を停止
 - **履歴表示**: 過去の回答履歴を確認
 - **ダークモード**: 目に優しいダークテーマ
 - **再生速度調整**: お手本音声の再生速度を0.5x〜1.5xで調整
 - **iOS最適化**: iOSデバイスでの動作を最適化したパッチ
+- **API使用量モニタ**: 現在のGemini / OpenAIのトークン使用量やリクエスト数をバー表示
+- **APIデバッグログ**: 送信しているモデル名・プロンプト概要を開発者向けに確認可能
+- **音声最適化**: 無音カットやビットレート調整でAI解析を高速化
 
-### 7. 📱 PWA (Progressive Web App) 対応
+### 8. 📱 PWA (Progressive Web App) 対応
 スマートフォンの「ホーム画面に追加」に対応。ネイティブアプリのようなフルスクリーン体験を提供します。
 
 ## 📂 ディレクトリ構成
@@ -123,7 +172,7 @@ Google Gemini、OpenAI (Whisper + GPT)、またはブラウザ標準の音声認
 
 ```
 .
-├── index.html              # エントリーポイント（スクリプト読み込み構成）
+├── index.html              # エントリーポイント（アプリ本体）
 ├── help.html               # 機能ガイドページ
 ├── style.css               # スタイルシート
 ├── data/                   # 単語データセット
@@ -132,32 +181,54 @@ Google Gemini、OpenAI (Whisper + GPT)、またはブラウザ標準の音声認
 │   ├── advanced.js         # 上級レベル
 │   └── business.js         # ビジネスレベル
 └── js/
-    ├── loader.js           # スクリプトローダー（読み込み順序管理）
+    ├── loader.js           # スクリプトローダー（読み込み順序管理＆機能デフォルト管理）
     ├── core/               # コア機能（アプリの基盤）
-    │   ├── core_templates.js        # HTMLテンプレート文字列定義
-    │   ├── core_logic.js            # アプリの状態管理・初期化・SRSロジック
+    │   ├── core_templates.js        # HTMLテンプレート定義
+    │   ├── core_logic.js            # アプリ状態管理・初期化・SRSロジック
     │   ├── core_db_manager.js       # DB操作・設定管理
     │   ├── core_audio_visuals.js    # 音声可視化 (Canvas, Web Audio API)
     │   ├── core_api_client.js       # API通信 (Gemini, OpenAI, Web Speech)
-    │   ├── core_app_flow.js         # UIインタラクション・録音フロー制御
+    │   ├── core_app_flow.js         # 録音フロー・画面遷移制御
     │   ├── core_dom_events.js       # DOMイベントハンドラ
-    │   └── core_ui_components.js    # DOM生成・注入ロジック
-    ├── features/           # 拡張機能（オプション機能）
-    │   ├── feature_extensions.js        # 学習記録・グラフ化
-    │   ├── feature_scoring.js           # AIスコアリング（100点満点）
-    │   ├── feature_overlay_playback.js  # 重ね合わせ再生
-    │   ├── feature_help_link.js         # ヘルプリンク
-    │   ├── feature_formant_game.js      # フォルマントゲーム
-    │   ├── feature_mirror_mode.js       # ミラーモード（Webカメラ）
-    │   ├── feature_blitz_mode.js        # ブリッツモード（早押しゲーム）
-    │   ├── feature_tongue_twister.js    # 早口言葉チャレンジ
-    │   ├── feature_celebration.js       # 祝賀演出（紙吹雪）
-    │   ├── feature_rank_system.js       # ランクシステム（RPG風）
-    │   ├── feature_katakana_hint.js     # カタカナヒント
-    │   ├── feature_sentence_mode.js     # センテンスモード
-    │   └── feature_reaction_mascot.js   # 反応マスコット
-    └── utils/              # ユーティリティ（補助機能）
-        ├── util_settings_organizer.js   # 設定画面の整理整頓
+    │   └── core_ui_components.js    # UIコンポーネント生成
+    ├── features/
+    │   ├── core/                    # コア拡張（スコアリング等）
+    │   │   ├── feature_extensions.js        # 学習記録・グラフ化
+    │   │   ├── feature_scoring.js           # AIスコアリング（100点満点＋音素精密スコア）
+    │   │   ├── feature_overlay_playback.js  # 重ね合わせ再生
+    │   │   └── feature_help_link.js         # ヘルプページへのリンク
+    │   ├── game/                    # ゲーム・チャレンジ系
+    │   │   ├── feature_blitz_mode.js        # ブリッツモード
+    │   │   ├── feature_tongue_twister.js    # 早口言葉チャレンジ
+    │   │   ├── feature_sentence_mode.js     # センテンスモード
+    │   │   ├── feature_rhythm_mode.js       # リズム練習モード
+    │   │   ├── feature_time_attack.js       # タイムアタックモード
+    │   │   └── feature_formant_game.js      # フォルマントゲーム
+    │   ├── visual/                  # ビジュアル・演出系
+    │   │   ├── feature_mirror_mode.js       # ミラーモード（口元拡大）
+    │   │   ├── feature_celebration.js       # 祝賀演出（紙吹雪）
+    │   │   └── feature_reaction_mascot.js   # 反応マスコット
+    │   ├── analysis/                # 分析・メトリクス
+    │   │   ├── feature_pronunciation_trend.js  # 発音トレンド分析
+    │   │   ├── feature_detailed_stats.js       # 詳細統計ダッシュボード
+    │   │   ├── feature_api_usage.js            # API使用量表示
+    │   │   ├── feature_api_debug.js            # APIデバッグログ
+    │   │   └── feature_strict_phoneme_mode.js  # 音素精密スコアモード
+    │   ├── learning/                # 学習支援
+    │   │   ├── feature_custom_session.js       # カスタム練習セッション
+    │   │   ├── feature_coaching_mode.js        # 発音コーチングモード
+    │   │   ├── feature_review_reminder.js      # 復習リマインダー
+    │   │   ├── feature_pronunciation_notes.js  # 発音ノート
+    │   │   ├── feature_katakana_hint.js        # カタカナヒント
+    │   │   ├── feature_accent_selection.js     # アクセント選択
+    │   │   ├── feature_audio_effects.js        # 音声エフェクト
+    │   │   └── feature_recent_words.js         # 最近練習した単語リスト
+    │   └── ui/                       # UI・ランク
+    │       └── feature_rank_system.js          # RPG風ランクシステム
+    └── utils/                       # ユーティリティ
+        ├── util_settings_organizer.js   # 設定画面のカテゴリ分け
+        ├── util_header_menu.js          # ヘッダー「その他」メニュー整理
+        ├── util_audio_optimizer.js      # 音声最適化（無音削除・圧縮）
         ├── util_ios_mic_fix.js          # iOSマイク修正パッチ
         └── util_ios_scroll_fix.js       # iOSスクロール修正パッチ
 ```
@@ -222,11 +293,12 @@ Google Gemini、OpenAI (Whisper + GPT)、またはブラウザ標準の音声認
 
 ## 🔄 バージョン情報
 
-現在のバージョン: **v2.4.0**
+現在のバージョン: **v2.5.0**
 
 ### 主な変更履歴
-- **v2.4.0**: フォルダ構成の整理、日本語化の完了
-- **v2.x**: モジュラー構成へのリファクタリング、拡張機能の追加
+- **v2.5.0**: 機能カテゴリごとのフォルダ分割、音素精密スコアモード・最近練習単語リスト・各種学習支援/分析機能の追加
+- **v2.4.x**: UIの日本語化完了、拡張機能の整理
+- **v2.x**: モジュラー構成へのリファクタリング、ゲームモード等の拡張機能追加
 - **v1.x**: 初期リリース
 
 ## 📄 ライセンス
