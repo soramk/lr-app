@@ -442,9 +442,36 @@
                 originalHandleResult(result);
                 
                 // 間違えた場合にAIアドバイスを自動追記
-                if (result && !result.isCorrect && result.advice && 
-                    window.targetObj && window.targetObj.w && window.currentCategory) {
-                    appendAIAdvice(window.targetObj.w, window.currentCategory, result.advice);
+                if (result && !result.isCorrect && window.targetObj && window.targetObj.w && window.currentCategory) {
+                    // 通常のアドバイス＋音素精密スコアモードの詳細情報を結合
+                    const lines = [];
+                    
+                    if (result.advice) {
+                        lines.push(result.advice);
+                    }
+                    
+                    if (Array.isArray(result.phonemeScores) && result.phonemeScores.length) {
+                        lines.push('【音素ごとの評価】');
+                        result.phonemeScores.forEach(p => {
+                            if (!p || !p.symbol) return;
+                            const s = (typeof p.score === 'number') ? p.score : '-';
+                            const issue = p.issue || '';
+                            lines.push(`・${p.symbol}: ${s}点${issue ? ` - ${issue}` : ''}`);
+                        });
+                    }
+                    
+                    if (Array.isArray(result.practiceTips) && result.practiceTips.length) {
+                        lines.push('【具体的な練習方法】');
+                        result.practiceTips.forEach(tip => {
+                            if (!tip) return;
+                            lines.push(`・${tip}`);
+                        });
+                    }
+                    
+                    const combinedAdvice = lines.join('\n').trim();
+                    if (combinedAdvice) {
+                        appendAIAdvice(window.targetObj.w, window.currentCategory, combinedAdvice);
+                    }
                 }
             };
         }
