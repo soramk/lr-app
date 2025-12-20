@@ -19,52 +19,34 @@
         'gemini-3.0-pro-preview': { 
             freeTier: false,
             freeTierLimits: null, // 無料枠なし
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini 3.0 Pro Preview'
+            paidTierLimits: { rpm: 25, tpm: 1000000, rpd: 250 },
+            name: 'Gemini 3 Pro'
         },
-        'gemini-3.0-pro': { 
-            freeTier: false,
-            freeTierLimits: null,
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini 3.0 Pro'
-        },
-        'gemini-3.0-pro-latest': { 
-            freeTier: false,
-            freeTierLimits: null,
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini 3.0 Pro Latest'
+        'gemini-3-flash-preview': { 
+            freeTier: true,
+            freeTierLimits: { rpm: 5, tpm: 250000, rpd: 20 },
+            paidTierLimits: { rpm: 1000, tpm: 1000000, rpd: 10000 },
+            name: 'Gemini 3 Flash'
         },
         
         // Gemini 2.5 シリーズ（無料枠あり）
+        'gemini-2.5-pro': { 
+            freeTier: false,
+            freeTierLimits: null,
+            paidTierLimits: { rpm: 150, tpm: 2000000, rpd: 10000 },
+            name: 'Gemini 2.5 Pro'
+        },
         'gemini-2.5-flash': { 
             freeTier: true,
-            freeTierLimits: { rpm: 10, tpm: 250000, rpd: 50 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 }, // 有料枠の上限
+            freeTierLimits: { rpm: 5, tpm: 250000, rpd: 20 },
+            paidTierLimits: { rpm: 1000, tpm: 1000000, rpd: 10000 }, // 有料枠の上限
             name: 'Gemini 2.5 Flash'
         },
         'gemini-2.5-flash-lite': { 
             freeTier: true,
-            freeTierLimits: { rpm: 15, tpm: 250000, rpd: 1000 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
+            freeTierLimits: { rpm: 10, tpm: 250000, rpd: 20 },
+            paidTierLimits: { rpm: 4000, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 2.5 Flash-Lite'
-        },
-        'gemini-2.5-flash-8b': { 
-            freeTier: true,
-            freeTierLimits: { rpm: 15, tpm: 250000, rpd: 1000 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini 2.5 Flash 8B'
-        },
-        'gemini-2.5-pro': { 
-            freeTier: true,
-            freeTierLimits: { rpm: 2, tpm: 32000, rpd: 50 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini 2.5 Pro'
-        },
-        'gemini-2.5-pro-latest': { 
-            freeTier: true,
-            freeTierLimits: { rpm: 2, tpm: 32000, rpd: 50 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini 2.5 Pro Latest'
         },
         
         // Gemini 1.5 シリーズ（無料枠あり）
@@ -98,21 +80,7 @@
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 1.5 Pro Latest'
         },
-        
-        // Gemini 1.0 シリーズ（レガシー、無料枠あり）
-        'gemini-pro': { 
-            freeTier: true,
-            freeTierLimits: { rpm: 2, tpm: 32000, rpd: 50 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini Pro'
-        },
-        'gemini-pro-vision': { 
-            freeTier: true,
-            freeTierLimits: { rpm: 2, tpm: 16000, rpd: 50 },
-            paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
-            name: 'Gemini Pro Vision'
-        },
-        
+                
         // OpenAI（無料枠なし）
         'whisper-1': { 
             freeTier: false,
