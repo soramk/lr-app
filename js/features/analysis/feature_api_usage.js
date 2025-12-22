@@ -4,10 +4,10 @@
  * モデルごとの無料枠内で利用できているかを視覚的に表示
  */
 
-(function() {
+(function () {
     const STORAGE_KEY = 'lr_api_usage_enabled';
     const USAGE_DATA_KEY = 'lr_api_usage_data';
-    
+
     // モデルごとの制限情報
     // freeTierLimits: 無料枠の制限値（無料枠がある場合のみ）
     // paidTierLimits: 有料枠の制限値（無料枠がない場合、または有料枠の上限を知りたい場合）
@@ -16,79 +16,79 @@
     // 参考: https://shift-ai.co.jp/blog/20257/
     const MODEL_LIMITS = {
         // Gemini 3 シリーズ（無料枠なし）
-        'gemini-3.0-pro-preview': { 
+        'gemini-3.0-pro-preview': {
             freeTier: false,
             freeTierLimits: null, // 無料枠なし
             paidTierLimits: { rpm: 25, tpm: 1000000, rpd: 250 },
             name: 'Gemini 3 Pro'
         },
-        'gemini-3-flash-preview': { 
+        'gemini-3-flash-preview': {
             freeTier: true,
             freeTierLimits: { rpm: 5, tpm: 250000, rpd: 20 },
             paidTierLimits: { rpm: 1000, tpm: 1000000, rpd: 10000 },
             name: 'Gemini 3 Flash'
         },
-        
+
         // Gemini 2.5 シリーズ（無料枠あり）
-        'gemini-2.5-pro': { 
+        'gemini-2.5-pro': {
             freeTier: false,
             freeTierLimits: null,
             paidTierLimits: { rpm: 150, tpm: 2000000, rpd: 10000 },
             name: 'Gemini 2.5 Pro'
         },
-        'gemini-2.5-flash': { 
+        'gemini-2.5-flash': {
             freeTier: true,
             freeTierLimits: { rpm: 5, tpm: 250000, rpd: 20 },
             paidTierLimits: { rpm: 1000, tpm: 1000000, rpd: 10000 }, // 有料枠の上限
             name: 'Gemini 2.5 Flash'
         },
-        'gemini-2.5-flash-lite': { 
+        'gemini-2.5-flash-lite': {
             freeTier: true,
             freeTierLimits: { rpm: 10, tpm: 250000, rpd: 20 },
             paidTierLimits: { rpm: 4000, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 2.5 Flash-Lite'
         },
-        
+
         // Gemini 1.5 シリーズ（無料枠あり）
-        'gemini-1.5-flash': { 
+        'gemini-1.5-flash': {
             freeTier: true,
             freeTierLimits: { rpm: 15, tpm: 1000000, rpd: 1500 },
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 1.5 Flash'
         },
-        'gemini-1.5-flash-8b': { 
+        'gemini-1.5-flash-8b': {
             freeTier: true,
             freeTierLimits: { rpm: 15, tpm: 1000000, rpd: 1500 },
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 1.5 Flash 8B'
         },
-        'gemini-1.5-flash-latest': { 
+        'gemini-1.5-flash-latest': {
             freeTier: true,
             freeTierLimits: { rpm: 15, tpm: 1000000, rpd: 1500 },
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 1.5 Flash Latest'
         },
-        'gemini-1.5-pro': { 
+        'gemini-1.5-pro': {
             freeTier: true,
             freeTierLimits: { rpm: 2, tpm: 32000, rpd: 50 },
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 1.5 Pro'
         },
-        'gemini-1.5-pro-latest': { 
+        'gemini-1.5-pro-latest': {
             freeTier: true,
             freeTierLimits: { rpm: 2, tpm: 32000, rpd: 50 },
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
             name: 'Gemini 1.5 Pro Latest'
         },
-                
+
         // OpenAI（無料枠なし）
-        'whisper-1': { 
+        'whisper-1': {
             freeTier: false,
             freeTierLimits: null,
             paidTierLimits: { rpm: 50, tpm: 0, rpd: 0 }, // 音声認識なのでTPMは不要、RPDは制限なし
             name: 'Whisper-1'
         },
-        'gpt-4o-mini': { 
+        'gpt-4o-mini': {
             freeTier: false,
             freeTierLimits: null,
             paidTierLimits: { rpm: 500, tpm: 2000000, rpd: 0 }, // RPDは制限なし
@@ -110,23 +110,23 @@
             if (saved) {
                 const parsed = JSON.parse(saved);
                 const now = Date.now();
-                
+
                 // 1分以上古いデータは削除（RPM/TPM計算用）
                 const oneMinuteAgo = now - 60000;
                 parsed.requests = parsed.requests.filter(r => r.timestamp > oneMinuteAgo);
-                
+
                 // 1日以上古いデータは削除（RPD計算用）
                 const oneDayAgo = now - 86400000;
                 parsed.requests = parsed.requests.filter(r => r.timestamp > oneDayAgo);
-                
+
                 usageData = parsed;
             }
-            
+
             // 日次リセット時刻を設定（UTC 0時）
             const now = new Date();
             const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
             usageData.dailyResetTime = utcMidnight.getTime();
-        } catch(e) {
+        } catch (e) {
             console.error("Failed to load usage data:", e);
         }
     }
@@ -135,7 +135,7 @@
     function saveUsageData() {
         try {
             localStorage.setItem(USAGE_DATA_KEY, JSON.stringify(usageData));
-        } catch(e) {
+        } catch (e) {
             console.error("Failed to save usage data:", e);
         }
     }
@@ -144,7 +144,7 @@
     function resetWindowIfNeeded() {
         const now = Date.now();
         const oneMinuteAgo = now - 60000;
-        
+
         // 1分以上経過していたらウィンドウをリセット
         if (usageData.currentWindowStart < oneMinuteAgo) {
             usageData.requests = usageData.requests.filter(r => r.timestamp > oneMinuteAgo);
@@ -171,7 +171,7 @@
     }
 
     // API使用量を記録
-    window.recordApiUsage = function(provider, model, inputTokens, outputTokens) {
+    window.recordApiUsage = function (provider, model, inputTokens, outputTokens) {
         if (!isEnabled()) return;
 
         resetWindowIfNeeded();
@@ -197,19 +197,25 @@
     // 現在の使用量を取得
     function getCurrentUsage(model) {
         resetWindowIfNeeded();
-        
-        const now = Date.now();
-        const oneMinuteAgo = now - 60000;
-        const oneDayAgo = now - 86400000;
-        
+
+        const nowTime = Date.now();
+        const now = new Date();
+        const oneMinuteAgo = nowTime - 60000;
+
+        // JST 0時（今日の開始時点）を計算
+        const jstOffset = 9 * 60 * 60 * 1000; // JST = UTC+9
+        const nowJst = nowTime + jstOffset;
+        const jstMidnight = Math.floor(nowJst / 86400000) * 86400000 - jstOffset;
+
         // 1分間のリクエスト（RPM/TPM計算用）
-        const recentRequests = usageData.requests.filter(r => 
+        const recentRequests = usageData.requests.filter(r =>
             r.timestamp > oneMinuteAgo && (model ? r.model === model : true)
         );
 
-        // 1日間のリクエスト（RPD計算用）
-        const dailyRequests = usageData.requests.filter(r => 
-            r.timestamp > oneDayAgo && (model ? r.model === model : true)
+        // JST 0時以降のリクエスト（RPD計算用）
+        // Rolling Window（過去24時間）ではなく、JST 0時でリセットされる仕様に変更
+        const dailyRequests = usageData.requests.filter(r =>
+            r.timestamp >= jstMidnight && (model ? r.model === model : true)
         );
 
         const rpm = recentRequests.length;
@@ -225,7 +231,7 @@
         if (MODEL_LIMITS[model]) {
             return MODEL_LIMITS[model];
         }
-        
+
         // 3.0シリーズを優先的にマッチ
         if (model && (model.includes('3.0') || model.includes('3-pro'))) {
             if (model.includes('pro-preview') || model.includes('pro_preview')) {
@@ -236,7 +242,7 @@
                 return MODEL_LIMITS['gemini-3.0-pro'];
             }
         }
-        
+
         // 2.5シリーズを優先的にマッチ
         if (model && model.includes('2.5')) {
             if (model.includes('flash-lite') || model.includes('flashlite') || model.includes('lite')) {
@@ -251,7 +257,7 @@
                 return MODEL_LIMITS['gemini-2.5-pro'];
             }
         }
-        
+
         // 1.5シリーズをマッチ
         if (model && model.includes('1.5')) {
             if (model.includes('flash-8b') || model.includes('flash8b')) {
@@ -266,27 +272,27 @@
                 return MODEL_LIMITS['gemini-1.5-pro'];
             }
         }
-        
+
         // 部分一致で検索
         for (const [key, limits] of Object.entries(MODEL_LIMITS)) {
             if (model && (model.includes(key) || key.includes(model))) {
                 return limits;
             }
         }
-        
+
         // OpenAIの組み合わせ（Whisper + GPT-4o-mini）の場合
         if (model === 'openai-combined') {
             // より厳しい制限を返す（WhisperのRPM制限）
-            return { 
+            return {
                 freeTier: false,
                 freeTierLimits: null,
                 paidTierLimits: { rpm: 50, tpm: 2000000, rpd: 0 },
                 name: 'OpenAI (Whisper + GPT-4o-mini)'
             };
         }
-        
+
         // デフォルト値（Gemini 1.5 Flashの無料枠を想定）
-        return { 
+        return {
             freeTier: true,
             freeTierLimits: { rpm: 15, tpm: 1000000, rpd: 1500 },
             paidTierLimits: { rpm: 50, tpm: 1000000, rpd: 1000 },
@@ -320,12 +326,12 @@
         }
 
         const limits = getModelLimits(model);
-        
+
         // 表示する制限値を決定（無料枠がある場合は無料枠の制限、ない場合は有料枠の制限）
-        const displayLimits = limits.freeTier && limits.freeTierLimits 
-            ? limits.freeTierLimits 
+        const displayLimits = limits.freeTier && limits.freeTierLimits
+            ? limits.freeTierLimits
             : limits.paidTierLimits;
-        
+
         // OpenAIの場合は、WhisperとGPT-4o-miniの両方の使用量を集計
         let usage;
         if (provider === 'openai') {
@@ -438,15 +444,15 @@
         checkbox.type = 'checkbox';
         checkbox.id = 'toggle-api-usage';
         checkbox.style.marginRight = '10px';
-        
+
         const saved = localStorage.getItem(STORAGE_KEY);
         const provider = document.getElementById('ai-provider')?.value;
         // API使用時はデフォルトON
-        checkbox.checked = (provider === 'gemini' || provider === 'openai') 
+        checkbox.checked = (provider === 'gemini' || provider === 'openai')
             ? (saved === null ? true : saved === 'true')
             : (saved === 'true');
 
-        checkbox.onchange = function() {
+        checkbox.onchange = function () {
             localStorage.setItem(STORAGE_KEY, checkbox.checked);
             applyState();
         };
@@ -506,7 +512,7 @@
             injectUsageDisplay();
             loadUsageData();
             updateUsageDisplay();
-            
+
             // プロバイダー変更時に更新
             const providerSelect = document.getElementById('ai-provider');
             const modelSelect = document.getElementById('model-select');
@@ -523,7 +529,7 @@
             }
         }
     }
-    
+
     // グローバルに公開（他のファイルから呼び出し可能）
     window.updateUsageDisplay = updateUsageDisplay;
 
@@ -532,7 +538,7 @@
         setTimeout(() => {
             injectSettingsToggle();
             applyState();
-            
+
             // 定期的に表示を更新（1秒ごと）
             setInterval(() => {
                 if (isEnabled()) {
@@ -545,7 +551,7 @@
     // 設定画面が開かれたときに再適用
     const originalOpenSettings = window.openSettings;
     if (originalOpenSettings) {
-        window.openSettings = function() {
+        window.openSettings = function () {
             originalOpenSettings();
             setTimeout(() => {
                 injectSettingsToggle();
