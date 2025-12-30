@@ -739,6 +739,17 @@ button.action-btn {
 
 /* --- Mobile Optimization (DB Manager) --- */
 @media (max-width: 600px) {
+
+    /* --- General Mobile Adjustments --- */
+    .start-btn {
+        padding: 20px 60px;
+        font-size: 1.5rem;
+    }
+
+    .app-logo {
+        height: 20px;
+    }
+
     .modal-body {
         flex-direction: column;
     }
