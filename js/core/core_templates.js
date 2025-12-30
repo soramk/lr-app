@@ -9,7 +9,7 @@ const HTML_TEMPLATES = {
     mainInterface: `
     <div class="container">
         <div class="header-bar">
-            <h1 class="app-title">L/R Master</h1>
+            <img src="LRPagelogo.png" alt="L/R Master" class="app-logo">
             <div class="header-tools">
                 <button id="dark-mode-btn" class="btn-icon" onclick="toggleDarkMode()" title="ダークモード">🌙</button>
                 <button id="db-manager-btn" class="btn-icon" onclick="openDbManager()" title="DB編集">📝</button>
@@ -81,17 +81,17 @@ const HTML_TEMPLATES = {
             <ul id="history-list" class="history-list"></ul>
         </div>
     </div>
-    `, 
+    `,
 
     // 2. スタート画面
     startOverlay: `
     <div id="start-overlay">
         <div style="font-size:3rem; margin-bottom:20px;">🎧</div>
-        <h2>L/R Master</h2>
+        <img src="lrlogo_02.png" alt="L/R Master" class="start-logo">
         <p>タップして音声を有効化</p>
         <button class="start-btn" onclick="unlockAudio()">開始</button>
     </div>
-    `, 
+    `,
 
     // 3. 設定モーダル
     settingsModal: `
@@ -148,7 +148,7 @@ const HTML_TEMPLATES = {
             </div>
         </div>
     </div>
-    `, 
+    `,
 
     // 4. DBマネージャー
     dbManagerModal: `
@@ -202,12 +202,12 @@ const HTML_TEMPLATES = {
  */
 function initHtmlTemplates() {
     // 全てのテンプレートを結合してbodyに挿入
-    const fullHtml = 
-        HTML_TEMPLATES.mainInterface + 
-        HTML_TEMPLATES.startOverlay + 
-        HTML_TEMPLATES.settingsModal + 
+    const fullHtml =
+        HTML_TEMPLATES.mainInterface +
+        HTML_TEMPLATES.startOverlay +
+        HTML_TEMPLATES.settingsModal +
         HTML_TEMPLATES.dbManagerModal;
-    
+
     document.body.innerHTML = fullHtml;
     console.log("Templates injected successfully.");
 }
